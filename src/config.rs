@@ -5,7 +5,7 @@ use std::fs;
 
 const CONFIG_PATH: &str = "data/config.json";
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub(crate) struct Config {
     pub(crate) feed: String,
     pub(crate) updated: Option<DateTime<Utc>>,
