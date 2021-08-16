@@ -4,7 +4,6 @@ use std::error::Error;
 use std::fs;
 
 const CONFIG_PATH: &str = "data/config.json";
-const UPDATE_CONFIG_PATH: &str = "data/uconfig.json";
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub(crate) struct Config {
@@ -19,6 +18,6 @@ pub(crate) fn feed_config() -> Result<Vec<Config>, Box<dyn Error>> {
 
 pub(crate) fn update(configs: Vec<Config>) -> Result<(), Box<dyn Error>> {
     let data = serde_json::to_string_pretty(&configs)?;
-    fs::write(UPDATE_CONFIG_PATH, data)?;
+    fs::write(CONFIG_PATH, data)?;
     Ok(())
 }
