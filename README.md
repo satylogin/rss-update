@@ -2,5 +2,5 @@
 
 fetched feed updated based on last run.
 
-Output Format:
+### Output Format
 ![output.png](images/output.png)
