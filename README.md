@@ -23,6 +23,6 @@ fetched feed updated based on last run.
 
 ### Future Work
 1. cli interface
-    a. ability to track read files
-    b. add feeds using cli instead of manually editing config
-    c. ability to track read files from cli
+    * ability to track read files
+    * add feeds using cli instead of manually editing config
+    * ability to track read files from cli
