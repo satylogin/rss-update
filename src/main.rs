@@ -21,7 +21,7 @@ async fn new_feeds(
     updated: Option<DateTime<Utc>>,
 ) -> Result<Vec<String>, Box<dyn Error>> {
     let channel = rfc_channel(url).await?;
-    let updated = updated.unwrap();
+    let updated = updated.unwrap_or(Utc::now());
     let links = channel
         .items()
         .into_iter()
