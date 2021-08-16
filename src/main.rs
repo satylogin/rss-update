@@ -1,4 +1,5 @@
 pub(crate) mod config;
+pub(crate) mod display;
 
 use chrono::{DateTime, FixedOffset, Utc};
 use config::Config;
@@ -66,6 +67,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let configs: Vec<Config> = config::feed_config()?;
     let conext = feeds_and_config(configs).await?;
     config::update(conext.config)?;
+    display::display_feeds(conext.feeds)?;
 
     Ok(())
 }
