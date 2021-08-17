@@ -11,7 +11,23 @@ change, I will probably update here ones its finished.
 ### Usage
 1. clone the github package.
 2. cd in package dir
-3. cargo run
+3. cargo run -- --help
+```bash
+rss-update 0.1
+to track and fetch updates on rss feeds.
+
+USAGE:
+    rss-update [SUBCOMMAND]
+
+FLAGS:
+    -h, --help       Prints help information
+    -V, --version    Prints version information
+
+SUBCOMMANDS:
+    add       add new feed source to track.
+    help      Prints this message or the help of the given subcommand(s)
+    unread    display contents of read list on terminal.
+```
 
 ### Adding feeds to track
 1. Open data/config.json
@@ -25,5 +41,5 @@ change, I will probably update here ones its finished.
 ### Future Work
 1. cli interface
     * ability to track read files
-    * add feeds using cli instead of manually editing config
-    * ability to track read files from cli
+    * ability to remove feeds from tracking
+    * ability to list tracking feeds.
