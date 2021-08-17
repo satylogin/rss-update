@@ -29,12 +29,6 @@ SUBCOMMANDS:
     unread    display contents of read list on terminal.
 ```
 
-### Adding feeds to track
-1. Open data/config.json
-2. Add feed link in format as others.
-3. On first run it picks all feeds, if updated is not specified, else all feeds posted after updated
-   date.
-
 ### Output Format
 ![output.png](images/output.png)
 
