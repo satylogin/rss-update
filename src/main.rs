@@ -6,6 +6,13 @@ pub(crate) mod readlist;
 use chrono::{DateTime, NaiveDate, Utc};
 use clap::{App, Arg, ArgMatches};
 use std::error::Error;
+use std::fs;
+use std::path::Path;
+
+pub(crate) fn base_dir() -> String {
+    let base_path = Path::new(&dirs::home_dir().unwrap()).join(".rss-update-cli");
+    String::from(base_path.to_str().unwrap())
+}
 
 // App level cli constants
 const APP: &str = "rss-update";
@@ -19,6 +26,10 @@ const UNREAD_ABOUT: &str = "display contents of read list on terminal.";
 // Cli constants for action: add new source
 const ADD: &str = "add";
 const ADD_ABOUT: &str = "add new feed source to track.";
+
+// Cli constants for action: setup
+const SETUP: &str = "setup";
+const SETUP_ABOUT: &str = "set up config for traking feeds.";
 
 const USER_DATE_FORMAT: &str = "%Y-%m-%d";
 
@@ -35,6 +46,7 @@ fn parse_args() -> ArgMatches<'static> {
                 ))
                 .arg(Arg::from_usage("--feed [FEED] 'rss feed to track'").required(true)),
         )
+        .subcommand(App::new(SETUP).about(SETUP_ABOUT))
         .get_matches()
 }
 
@@ -76,6 +88,25 @@ fn add_feed(args: &ArgMatches<'_>) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
+fn setup() -> Result<(), Box<dyn Error>> {
+    fs::create_dir_all(base_dir())?;
+    let config_path = config::config_path();
+    if Path::new(&config_path).is_file() {
+        println!("config file already exists.");
+    } else {
+        println!("creating config path.");
+        fs::write(config_path, "[]")?;
+    }
+    let readlist_path = readlist::readlist_path();
+    if Path::new(&readlist_path).is_file() {
+        println!("readlist file already exists.");
+    } else {
+        println!("creating readlist path.");
+        fs::write(readlist_path, "{}")?;
+    }
+    Ok(())
+}
+
 async fn fetch_new_feeds() -> Result<(), Box<dyn Error>> {
     let configs: Vec<config::Config> = config::feed_config()?;
     let conext = feeds::feeds_and_config(configs).await?;
@@ -92,6 +123,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
         unread()?;
     } else if let Some(s_args) = args.subcommand_matches(ADD) {
         add_feed(s_args)?;
+    } else if let Some(_) = args.subcommand_matches(SETUP) {
+        setup()?;
     } else {
         fetch_new_feeds().await?;
     }

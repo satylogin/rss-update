@@ -8,10 +8,11 @@ change, I will probably update here ones its finished.
 2. git
 3. cargo
 
-### Usage
+### Installation
 1. clone the github package.
 2. cd in package dir
-3. cargo run -- --help
+3. `cargo run -- setup`
+4. `cargo run -- --help`
 ```bash
 rss-update 0.1
 to track and fetch updates on rss feeds.
@@ -26,8 +27,13 @@ FLAGS:
 SUBCOMMANDS:
     add       add new feed source to track.
     help      Prints this message or the help of the given subcommand(s)
+    setup     set up config for traking feeds.
     unread    display contents of read list on terminal.
 ```
+
+### Usage
+`cargo run -- help` should return output as shown above. you can get spefic command help by running
+help on subcommand like `cargo run -- add --help`.
 
 ### Output Format
 ![output.png](images/output.png)

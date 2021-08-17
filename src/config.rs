@@ -2,8 +2,12 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::error::Error;
 use std::fs;
+use std::path::Path;
 
-const CONFIG_PATH: &str = "data/config.json";
+pub(crate) fn config_path() -> String {
+    let config_path = Path::new(&crate::base_dir()).join("config.json");
+    String::from(config_path.to_str().unwrap())
+}
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub(crate) struct Config {
@@ -12,12 +16,12 @@ pub(crate) struct Config {
 }
 
 pub(crate) fn feed_config() -> Result<Vec<Config>, Box<dyn Error>> {
-    let config = fs::read_to_string(CONFIG_PATH)?;
+    let config = fs::read_to_string(config_path())?;
     Ok(serde_json::from_str(config.as_str())?)
 }
 
 pub(crate) fn update(configs: Vec<Config>) -> Result<(), Box<dyn Error>> {
     let data = serde_json::to_string_pretty(&configs)?;
-    fs::write(CONFIG_PATH, data)?;
+    fs::write(config_path(), data)?;
     Ok(())
 }
