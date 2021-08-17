@@ -1,10 +1,10 @@
 {
+  "https://dev.to/feed/satylogin": [],
+  "https://satylogin.medium.com/feed": [],
   "https://motw.rs/rss.xml": [
     "https://motw.rs/blog/2021/08/08/stdfs-part-2-dirs-dirs-dirs/"
   ],
-  "http://syndication.thedailywtf.com/TheDailyWtf": [],
-  "https://dev.to/feed/satylogin": [],
-  "https://satylogin.medium.com/feed": [],
+  "https://drewdevault.com/blog/index.xml": [],
   "https://blog.thecodewhisperer.com/feed.xml": [],
-  "https://drewdevault.com/blog/index.xml": []
+  "http://syndication.thedailywtf.com/TheDailyWtf": []
 }

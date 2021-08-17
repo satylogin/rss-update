@@ -1,5 +1,6 @@
 use crate::config::Config;
 use chrono::{DateTime, FixedOffset, Utc};
+use futures::future;
 use rss::Channel;
 use std::collections::HashMap;
 use std::error::Error;
@@ -35,22 +36,21 @@ pub(crate) struct Context {
 }
 
 pub(crate) async fn feeds_and_config(configs: Vec<Config>) -> Result<Context, Box<dyn Error>> {
-    let mut feeds_futures = HashMap::new();
-    for config in configs.clone() {
-        let feeds_future = new_feeds(config.feed.clone(), config.updated.clone());
-        feeds_futures.insert(config.feed.clone(), feeds_future);
+    let mut feeds_futures = vec![];
+    for config in configs.iter() {
+        feeds_futures.push(new_feeds(config.feed.clone(), config.updated.clone()));
     }
+    let new_feeds = future::join_all(feeds_futures).await;
 
     let current_time: DateTime<Utc> = Utc::now();
     let mut new_config = vec![];
     let mut feeds_to_read = HashMap::new();
-    for (feed, future) in feeds_futures {
-        let to_read = future.await?;
-        feeds_to_read.insert(feed.clone(), to_read);
+    for (config, to_read) in configs.into_iter().zip(new_feeds.into_iter()) {
+        feeds_to_read.insert(config.feed.clone(), to_read?);
         new_config.push(Config {
-            feed,
             updated: Some(current_time),
-        });
+            ..config
+        })
     }
 
     Ok(Context {
