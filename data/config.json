@@ -1,10 +1,26 @@
 [
   {
-    "feed": "https://satylogin.medium.com/feed",
-    "updated": "2021-08-16T14:08:25.134199467Z"
+    "feed": "https://blog.thecodewhisperer.com/feed.xml",
+    "updated": "2021-08-17T00:48:11.843663068Z"
   },
   {
     "feed": "https://dev.to/feed/satylogin",
-    "updated": "2021-08-16T14:08:25.134199467Z"
+    "updated": "2021-08-17T00:48:11.843663068Z"
+  },
+  {
+    "feed": "https://satylogin.medium.com/feed",
+    "updated": "2021-08-17T00:48:11.843663068Z"
+  },
+  {
+    "feed": "https://motw.rs/rss.xml",
+    "updated": "2021-08-17T00:48:11.843663068Z"
+  },
+  {
+    "feed": "https://drewdevault.com/blog/index.xml",
+    "updated": "2021-08-17T00:48:11.843663068Z"
+  },
+  {
+    "feed": "http://syndication.thedailywtf.com/TheDailyWtf",
+    "updated": "2021-08-17T00:48:11.843663068Z"
   }
 ]

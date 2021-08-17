@@ -1,4 +1,4 @@
-use crate::ReadList;
+use crate::readlist::ReadList;
 use std::error::Error;
 use std::io::Write;
 use termcolor::{Color, ColorChoice, ColorSpec, StandardStream, WriteColor};

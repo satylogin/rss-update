@@ -1,6 +1,7 @@
 # rss-update
 
-fetched feed updated based on last run.
+fetches feeds updated based on last run. This is still a work in progress and things are likely to
+change, I will probably update here ones its finished.
 
 ### Prerequisites
 1. rust

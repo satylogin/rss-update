@@ -1,12 +1,10 @@
 {
-  "https://satylogin.medium.com/feed": [
-    "https://medium.com/analytics-vidhya/playing-the-generator-game-8a3c22987722?source=rss-51c268decb24------2",
-    "https://satylogin.medium.com/debugging-tps-e2a3f2b8bdd2?source=rss-51c268decb24------2",
-    "https://satylogin.medium.com/starship-because-its-too-damn-cool-503ffa5562fa?source=rss-51c268decb24------2"
+  "https://motw.rs/rss.xml": [
+    "https://motw.rs/blog/2021/08/08/stdfs-part-2-dirs-dirs-dirs/"
   ],
-  "https://dev.to/feed/satylogin": [
-    "https://dev.to/satylogin/indirect-coupling-story-bpo",
-    "https://dev.to/satylogin/playing-the-generator-game-2bk4",
-    "https://dev.to/satylogin/starship-because-it-s-too-damn-cool-3nfc"
-  ]
+  "https://satylogin.medium.com/feed": [],
+  "https://drewdevault.com/blog/index.xml": [],
+  "http://syndication.thedailywtf.com/TheDailyWtf": [],
+  "https://dev.to/feed/satylogin": [],
+  "https://blog.thecodewhisperer.com/feed.xml": []
 }
