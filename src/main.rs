@@ -17,19 +17,24 @@ pub(crate) fn base_dir() -> String {
 // App level cli constants
 const APP: &str = "rss-update";
 const VERSION: &str = "0.1";
-const ABOUT: &str = "to track and fetch updates on rss feeds.";
+const ABOUT: &str = "To track and fetch updates on rss feeds.";
 
 // Cli constants for action: generate pretty read list.
 const UNREAD: &str = "unread";
-const UNREAD_ABOUT: &str = "display contents of read list on terminal.";
+const UNREAD_ABOUT: &str = "Display contents of read list on terminal.";
 
 // Cli constants for action: add new source
 const ADD: &str = "add";
-const ADD_ABOUT: &str = "add new feed source to track.";
+const ADD_ABOUT: &str = "Add new feed source to track.";
 
 // Cli constants for action: setup
 const SETUP: &str = "setup";
-const SETUP_ABOUT: &str = "set up config for traking feeds.";
+const SETUP_ABOUT: &str = "Set up config for traking feeds.";
+
+// Cli constants for action: tracking feeds
+const TRACKING: &str = "tracking";
+const TRACKING_ABOUT: &str =
+    "Lists feeds that are currently being tracked along with its metadata.";
 
 const USER_DATE_FORMAT: &str = "%Y-%m-%d";
 
@@ -47,6 +52,7 @@ fn parse_args() -> ArgMatches<'static> {
                 .arg(Arg::from_usage("--feed [FEED] 'rss feed to track'").required(true)),
         )
         .subcommand(App::new(SETUP).about(SETUP_ABOUT))
+        .subcommand(App::new(TRACKING).about(TRACKING_ABOUT))
         .get_matches()
 }
 
@@ -107,6 +113,12 @@ fn setup() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
+fn tracking() -> Result<(), Box<dyn Error>> {
+    let configs: Vec<config::Config> = config::feed_config()?;
+    display::display_configs(configs)?;
+    Ok(())
+}
+
 async fn fetch_new_feeds() -> Result<(), Box<dyn Error>> {
     let configs: Vec<config::Config> = config::feed_config()?;
     let conext = feeds::feeds_and_config(configs).await?;
@@ -125,6 +137,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
         add_feed(s_args)?;
     } else if let Some(_) = args.subcommand_matches(SETUP) {
         setup()?;
+    } else if let Some(_) = args.subcommand_matches(TRACKING) {
+        tracking()?;
     } else {
         fetch_new_feeds().await?;
     }

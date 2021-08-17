@@ -15,7 +15,7 @@ change, I will probably update here ones its finished.
 4. `cargo run -- --help`
 ```bash
 rss-update 0.1
-to track and fetch updates on rss feeds.
+To track and fetch updates on rss feeds.
 
 USAGE:
     rss-update [SUBCOMMAND]
@@ -25,10 +25,11 @@ FLAGS:
     -V, --version    Prints version information
 
 SUBCOMMANDS:
-    add       add new feed source to track.
-    help      Prints this message or the help of the given subcommand(s)
-    setup     set up config for traking feeds.
-    unread    display contents of read list on terminal.
+    add         Add new feed source to track.
+    help        Prints this message or the help of the given subcommand(s)
+    setup       Set up config for traking feeds.
+    tracking    Lists feeds that are currently being tracked along with its metadata.
+    unread      Display contents of read list on terminal.
 ```
 
 ### Usage
@@ -42,4 +43,3 @@ help on subcommand like `cargo run -- add --help`.
 1. cli interface
     * ability to track read files
     * ability to remove feeds from tracking
-    * ability to list tracking feeds.
