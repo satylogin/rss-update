@@ -40,6 +40,10 @@ const TRACKING_ABOUT: &str =
 const REMOVE: &str = "remove";
 const REMOVE_ABOUT: &str = "to remove feed from tracking";
 
+// Cli constants for action: read
+const READ: &str = "read";
+const READ_ABOUT: &str = "to mark post as read.";
+
 const USER_DATE_FORMAT: &str = "%Y-%m-%d";
 
 fn parse_args() -> ArgMatches<'static> {
@@ -60,6 +64,11 @@ fn parse_args() -> ArgMatches<'static> {
         .subcommand(App::new(REMOVE).about(REMOVE_ABOUT).arg(
             Arg::from_usage("--feed [FEED] `rss feed to remove from tracking.`").required(true),
         ))
+        .subcommand(
+            App::new(READ)
+                .about(READ_ABOUT)
+                .arg(Arg::from_usage("--post [URL] `post url to mark as read.`").required(true)),
+        )
         .get_matches()
 }
 
@@ -73,10 +82,7 @@ fn unread() -> Result<(), Box<dyn Error>> {
 }
 
 fn add_feed(args: &ArgMatches<'_>) -> Result<(), Box<dyn Error>> {
-    let feed = args
-        .value_of("feed")
-        .expect("feed is required arg")
-        .to_string();
+    let feed = args.value_of("feed").unwrap().to_string();
     let tracking_date = args
         .value_of("from")
         .map(|d| {
@@ -127,15 +133,29 @@ fn tracking() -> Result<(), Box<dyn Error>> {
 }
 
 fn remove_feed(args: &ArgMatches<'_>) -> Result<(), Box<dyn Error>> {
-    let feed = args
-        .value_of("feed")
-        .expect("feed is required arg")
-        .to_string();
+    let feed = args.value_of("feed").unwrap().to_string();
     let configs: Vec<config::Config> = config::feed_config()?
         .into_iter()
         .filter(|c| c.feed != feed)
         .collect();
     config::update(configs)?;
+    Ok(())
+}
+
+fn mark_read(args: &ArgMatches<'_>) -> Result<(), Box<dyn Error>> {
+    let post = args.value_of("post").unwrap().to_string();
+    let mut unread_feeds: readlist::ReadList = readlist::update(readlist::ReadList::new())?
+        .into_iter()
+        .filter(|(_, read_list)| !read_list.is_empty())
+        .collect();
+    for (_, to_read) in unread_feeds.iter_mut() {
+        *to_read = to_read
+            .into_iter()
+            .filter(|p| **p != post)
+            .map(|p| p.to_owned())
+            .collect::<Vec<_>>();
+    }
+    let _ = readlist::replace(unread_feeds)?;
     Ok(())
 }
 
@@ -157,6 +177,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         (SETUP, Some(_)) => setup(),
         (TRACKING, Some(_)) => tracking(),
         (REMOVE, Some(s_args)) => remove_feed(s_args),
+        (READ, Some(s_args)) => mark_read(s_args),
         _ => fetch_new_feeds().await,
     }?;
     Ok(())

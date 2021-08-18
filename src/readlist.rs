@@ -12,7 +12,7 @@ pub(crate) type ReadList = HashMap<String, Vec<String>>;
 
 pub(crate) fn update(feeds: ReadList) -> Result<ReadList, Box<dyn Error>> {
     let read_list = fs::read_to_string(readlist_path())?;
-    let mut read_list: HashMap<String, Vec<String>> = serde_json::from_str(read_list.as_str())?;
+    let mut read_list: ReadList = serde_json::from_str(read_list.as_str())?;
     for (feed, mut to_read) in feeds.into_iter() {
         read_list.entry(feed).or_insert(vec![]).append(&mut to_read);
     }
@@ -20,6 +20,12 @@ pub(crate) fn update(feeds: ReadList) -> Result<ReadList, Box<dyn Error>> {
         to_read.sort();
         to_read.dedup();
     });
+    let data = serde_json::to_string_pretty(&read_list)?;
+    fs::write(readlist_path(), data)?;
+    Ok(read_list)
+}
+
+pub(crate) fn replace(read_list: ReadList) -> Result<ReadList, Box<dyn Error>> {
     let data = serde_json::to_string_pretty(&read_list)?;
     fs::write(readlist_path(), data)?;
     Ok(read_list)
