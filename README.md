@@ -27,6 +27,7 @@ FLAGS:
 SUBCOMMANDS:
     add         Add new feed source to track.
     help        Prints this message or the help of the given subcommand(s)
+    remove      to remove feed from tracking
     setup       Set up config for traking feeds.
     tracking    Lists feeds that are currently being tracked along with its metadata.
     unread      Display contents of read list on terminal.
@@ -42,4 +43,3 @@ help on subcommand like `cargo run -- add --help`.
 ### Future Work
 1. cli interface
     * ability to track read files
-    * ability to remove feeds from tracking

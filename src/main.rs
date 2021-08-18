@@ -36,6 +36,10 @@ const TRACKING: &str = "tracking";
 const TRACKING_ABOUT: &str =
     "Lists feeds that are currently being tracked along with its metadata.";
 
+// Cli constants for action: remove
+const REMOVE: &str = "remove";
+const REMOVE_ABOUT: &str = "to remove feed from tracking";
+
 const USER_DATE_FORMAT: &str = "%Y-%m-%d";
 
 fn parse_args() -> ArgMatches<'static> {
@@ -53,6 +57,9 @@ fn parse_args() -> ArgMatches<'static> {
         )
         .subcommand(App::new(SETUP).about(SETUP_ABOUT))
         .subcommand(App::new(TRACKING).about(TRACKING_ABOUT))
+        .subcommand(App::new(REMOVE).about(REMOVE_ABOUT).arg(
+            Arg::from_usage("--feed [FEED] `rss feed to remove from tracking.`").required(true),
+        ))
         .get_matches()
 }
 
@@ -119,6 +126,19 @@ fn tracking() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
+fn remove_feed(args: &ArgMatches<'_>) -> Result<(), Box<dyn Error>> {
+    let feed = args
+        .value_of("feed")
+        .expect("feed is required arg")
+        .to_string();
+    let configs: Vec<config::Config> = config::feed_config()?
+        .into_iter()
+        .filter(|c| c.feed != feed)
+        .collect();
+    config::update(configs)?;
+    Ok(())
+}
+
 async fn fetch_new_feeds() -> Result<(), Box<dyn Error>> {
     let configs: Vec<config::Config> = config::feed_config()?;
     let conext = feeds::feeds_and_config(configs).await?;
@@ -131,17 +151,13 @@ async fn fetch_new_feeds() -> Result<(), Box<dyn Error>> {
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     let args = parse_args();
-    if let Some(_) = args.subcommand_matches(UNREAD) {
-        unread()?;
-    } else if let Some(s_args) = args.subcommand_matches(ADD) {
-        add_feed(s_args)?;
-    } else if let Some(_) = args.subcommand_matches(SETUP) {
-        setup()?;
-    } else if let Some(_) = args.subcommand_matches(TRACKING) {
-        tracking()?;
-    } else {
-        fetch_new_feeds().await?;
-    }
-
+    match args.subcommand() {
+        (UNREAD, Some(_)) => unread(),
+        (ADD, Some(s_args)) => add_feed(s_args),
+        (SETUP, Some(_)) => setup(),
+        (TRACKING, Some(_)) => tracking(),
+        (REMOVE, Some(s_args)) => remove_feed(s_args),
+        _ => fetch_new_feeds().await,
+    }?;
     Ok(())
 }
