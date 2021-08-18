@@ -1,4 +1,5 @@
 # rss-update
+Supports both rss and atom feeds.
 
 fetches feeds updated based on last run. This is still a work in progress and things are likely to
 change.
@@ -35,6 +36,9 @@ SUBCOMMANDS:
 ```
 
 ### Usage
+* To fetch new posts in feed: `cargo run`
+* For performing specific subcommand: `cargo run -- subcommand --opts...`
+
 `cargo run -- help` should return output as shown above. you can get spefic command help by running
 help on subcommand like 
 
