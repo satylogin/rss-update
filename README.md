@@ -37,7 +37,14 @@ SUBCOMMANDS:
 3. To setup: `rss-update setup`.
 
 ### Usage
+* To add new feeds: `rss-update add --feed <FEED>`
 * To fetch new posts in feed: `rss-update`
+* To show unread posts: `rss-update unread`
+* To mark posts as read: `rss-feed read --post <URL>`
+* To list tracking feeds: `rss-feed tracking`
+* To remove feed from tracking: `rss-feed remove --feed <FEED>`
+
+
 * For performing specific subcommand: `rss-update subcommand --opts...`
 
 `rss-update --help` should return output as shown above. you can get spefic command help by running
