@@ -6,14 +6,14 @@ change.
 
 ### Prerequisites
 1. rust
-2. git
 3. cargo
 
+You can get both by installing [rustup](https://www.rust-lang.org/learn/get-started) and this is as
+easy as running single command.
+
 ### Installation
-1. clone the github package.
-2. cd in package dir
-3. `cargo run -- setup`
-4. `cargo run -- --help`
+1. cargo install --git https://github.com/satylogin/rss-update
+2. To verify installationn: `rss-update --help`
 ```bash
 rss-update 0.1
 To track and fetch updates on rss feeds.
@@ -36,13 +36,13 @@ SUBCOMMANDS:
 ```
 
 ### Usage
-* To fetch new posts in feed: `cargo run`
-* For performing specific subcommand: `cargo run -- subcommand --opts...`
+* To fetch new posts in feed: `rss-update`
+* For performing specific subcommand: `rss-update subcommand --opts...`
 
-`cargo run -- help` should return output as shown above. you can get spefic command help by running
+`rss-update --help` should return output as shown above. you can get spefic command help by running
 help on subcommand like 
 
-`cargo run -- add --help`.
+`rss-update add --help`.
 ```bash
 rss-update-add 
 Add new feed source to track.
@@ -61,4 +61,3 @@ OPTIONS:
 
 ### Output Format
 ![output.png](images/output.png)
-
