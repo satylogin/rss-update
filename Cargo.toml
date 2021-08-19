@@ -2,6 +2,9 @@
 name = "rss-update"
 version = "0.1.0"
 edition = "2018"
+description = "cli util for tracking updates on rss/atom feed"
+license-file = "LICENSE.txt"
+homepage = "https://github.com/satylogin/rss-update"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
