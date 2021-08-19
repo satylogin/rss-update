@@ -5,9 +5,8 @@ fetches feeds updated based on last run. This is still a work in progress and th
 change.
 
 ### Prerequisites
-* cargo
-You can get cargo by installing [rustup](https://www.rust-lang.org/learn/get-started) and this is as
-easy as running single command.
+* Cargo: You can get cargo by installing [rustup](https://www.rust-lang.org/learn/get-started) and 
+this is as easy as running single command.
 
 ### Installation
 1. cargo install rss-update
@@ -66,4 +65,4 @@ OPTIONS:
 ```
 
 ### Output Format
-![output.png](images/output.png)
+![output.png](https://github.com/satylogin/rss-update/images/output.png)
