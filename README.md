@@ -5,14 +5,12 @@ fetches feeds updated based on last run. This is still a work in progress and th
 change.
 
 ### Prerequisites
-1. rust
-3. cargo
-
-You can get both by installing [rustup](https://www.rust-lang.org/learn/get-started) and this is as
+* cargo
+You can get cargo by installing [rustup](https://www.rust-lang.org/learn/get-started) and this is as
 easy as running single command.
 
 ### Installation
-1. cargo install --git https://github.com/satylogin/rss-update
+1. cargo install rss-update
 2. To verify installationn: `rss-update --help`
 ```bash
 rss-update 0.1
