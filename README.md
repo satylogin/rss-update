@@ -34,6 +34,7 @@ SUBCOMMANDS:
     tracking    Lists feeds that are currently being tracked along with its metadata.
     unread      Display contents of read list on terminal.
 ```
+3. To setup: `rss-update setup`.
 
 ### Usage
 * To fetch new posts in feed: `rss-update`
