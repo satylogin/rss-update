@@ -1,7 +1,7 @@
 use crate::config::Config;
+use crate::readlist::ReadList;
 use chrono::{DateTime, Utc};
 use futures::future;
-use std::collections::HashMap;
 use std::error::Error;
 
 async fn new_posts_from_feed(
@@ -54,8 +54,8 @@ async fn new_posts(
 
 #[derive(Debug)]
 pub(crate) struct Context {
-    pub(crate) feeds: HashMap<String, Vec<String>>,
-    pub(crate) config: Vec<Config>,
+    pub(crate) feeds: ReadList,
+    pub(crate) configs: Vec<Config>,
 }
 
 pub(crate) async fn feeds_and_config(configs: Vec<Config>) -> Result<Context, Box<dyn Error>> {
@@ -66,11 +66,11 @@ pub(crate) async fn feeds_and_config(configs: Vec<Config>) -> Result<Context, Bo
     let new_feeds = future::join_all(feeds_futures).await;
 
     let current_time: DateTime<Utc> = Utc::now();
-    let mut new_config = vec![];
-    let mut feeds_to_read = HashMap::new();
+    let mut new_configs = vec![];
+    let mut feeds_to_read = ReadList::new();
     for (config, to_read) in configs.into_iter().zip(new_feeds.into_iter()) {
         feeds_to_read.insert(config.feed.clone(), to_read?);
-        new_config.push(Config {
+        new_configs.push(Config {
             updated: Some(current_time),
             ..config
         })
@@ -78,6 +78,6 @@ pub(crate) async fn feeds_and_config(configs: Vec<Config>) -> Result<Context, Bo
 
     Ok(Context {
         feeds: feeds_to_read,
-        config: new_config,
+        configs: new_configs,
     })
 }

@@ -163,7 +163,7 @@ async fn fetch_new_feeds() -> Result<(), Box<dyn Error>> {
     let configs: Vec<config::Config> = config::feed_config()?;
     let conext = feeds::feeds_and_config(configs).await?;
     let read_list = readlist::update(conext.feeds)?;
-    config::update(conext.config)?;
+    config::update(conext.configs)?;
     display::display_feeds(read_list)?;
     Ok(())
 }
