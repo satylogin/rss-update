@@ -65,4 +65,4 @@ OPTIONS:
 ```
 
 ### Output Format
-![output.png](https://github.com/satylogin/rss-update/images/output.png)
+![output.png](https://raw.githubusercontent.com/satylogin/rss-update/main/images/output.png)
