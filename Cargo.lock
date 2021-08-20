@@ -1021,7 +1021,7 @@ dependencies = [
 
 [[package]]
 name = "rss-update"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "atom_syndication 0.6.0",
  "chrono",
@@ -1033,6 +1033,7 @@ dependencies = [
  "serde",
  "serde_json",
  "syndication",
+ "tempfile",
  "termcolor",
  "tokio",
 ]

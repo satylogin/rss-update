@@ -1,6 +1,6 @@
 [package]
 name = "rss-update"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2018"
 description = "cli util for tracking updates on rss/atom feed"
 license-file = "LICENSE"
@@ -21,3 +21,6 @@ futures = "0.3.16"
 dirs = "3.0.2"
 syndication = "0.5.0"
 atom_syndication = "0.6.0"
+
+[dev-dependencies]
+tempfile = "3"
