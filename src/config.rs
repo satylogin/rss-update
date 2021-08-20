@@ -15,7 +15,7 @@ pub(crate) struct Config {
     pub(crate) updated: Option<DateTime<Utc>>,
 }
 
-pub(crate) fn feed_config() -> Result<Vec<Config>, Box<dyn Error>> {
+pub(crate) fn get() -> Result<Vec<Config>, Box<dyn Error>> {
     let config = fs::read_to_string(config_path())?;
     Ok(serde_json::from_str(config.as_str())?)
 }
@@ -24,4 +24,14 @@ pub(crate) fn update(configs: Vec<Config>) -> Result<(), Box<dyn Error>> {
     let data = serde_json::to_string_pretty(&configs)?;
     fs::write(config_path(), data)?;
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_config_path() {
+        assert!(config_path().starts_with("/"));
+    }
 }

@@ -94,7 +94,7 @@ fn add_feed(args: &ArgMatches<'_>) -> Result<(), Box<dyn Error>> {
         feed,
         updated: Some(tracking_date),
     };
-    let mut configs: Vec<config::Config> = config::feed_config()?;
+    let mut configs: Vec<config::Config> = config::get()?;
     for c in configs.iter() {
         if c.feed == new_config.feed {
             println!("found duplicate config: {:?}, skipping update.", &c);
@@ -127,14 +127,14 @@ fn setup() -> Result<(), Box<dyn Error>> {
 }
 
 fn tracking() -> Result<(), Box<dyn Error>> {
-    let configs: Vec<config::Config> = config::feed_config()?;
+    let configs: Vec<config::Config> = config::get()?;
     display::display_configs(configs)?;
     Ok(())
 }
 
 fn remove_feed(args: &ArgMatches<'_>) -> Result<(), Box<dyn Error>> {
     let feed = args.value_of("feed").unwrap().to_string();
-    let configs: Vec<config::Config> = config::feed_config()?
+    let configs: Vec<config::Config> = config::get()?
         .into_iter()
         .filter(|c| c.feed != feed)
         .collect();
@@ -160,7 +160,7 @@ fn mark_read(args: &ArgMatches<'_>) -> Result<(), Box<dyn Error>> {
 }
 
 async fn fetch_new_feeds() -> Result<(), Box<dyn Error>> {
-    let configs: Vec<config::Config> = config::feed_config()?;
+    let configs: Vec<config::Config> = config::get()?;
     let conext = feeds::feeds_and_config(configs).await?;
     let read_list = readlist::update(conext.feeds)?;
     config::update(conext.configs)?;
