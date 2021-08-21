@@ -73,11 +73,7 @@ fn parse_args() -> ArgMatches<'static> {
 }
 
 fn unread() -> Result<(), Box<dyn Error>> {
-    let unread_feeds: readlist::ReadList = readlist::update(readlist::ReadList::new())?
-        .into_iter()
-        .filter(|(_, read_list)| !read_list.is_empty())
-        .collect();
-    display::display_feeds(unread_feeds)?;
+    display::display_feeds(readlist::unread()?)?;
     Ok(())
 }
 
