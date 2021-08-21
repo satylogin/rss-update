@@ -73,12 +73,10 @@ fn parse_args() -> ArgMatches<'static> {
 }
 
 fn unread() -> Result<(), Box<dyn Error>> {
-    display::display_feeds(readlist::unread()?)?;
-    Ok(())
+    display::display_feeds(readlist::unread()?)
 }
 
 fn add_feed(args: &ArgMatches<'_>) -> Result<(), Box<dyn Error>> {
-    let feed = args.value_of("feed").unwrap().to_string();
     let tracking_date = args
         .value_of("from")
         .map(|d| {
@@ -86,82 +84,42 @@ fn add_feed(args: &ArgMatches<'_>) -> Result<(), Box<dyn Error>> {
             DateTime::from_utc(d.and_hms(0, 0, 0), Utc)
         })
         .unwrap_or(Utc::now());
-    let new_config = config::Config {
-        feed,
+    config::update(config::Config {
+        feed: args.value_of("feed").unwrap().to_string(),
         updated: Some(tracking_date),
-    };
-    let mut configs: Vec<config::Config> = config::get()?;
-    for c in configs.iter() {
-        if c.feed == new_config.feed {
-            println!("found duplicate config: {:?}, skipping update.", &c);
-            return Ok(());
-        }
-    }
-    println!("adding config for: {:?}", &new_config);
-    configs.push(new_config);
-    config::update(configs)?;
+    })?;
     Ok(())
 }
 
 fn setup() -> Result<(), Box<dyn Error>> {
     fs::create_dir_all(base_dir())?;
-    let config_path = config::config_path();
-    if Path::new(&config_path).is_file() {
-        println!("config file already exists.");
-    } else {
-        println!("creating config path.");
-        fs::write(config_path, "[]")?;
-    }
-    let readlist_path = readlist::readlist_path();
-    if Path::new(&readlist_path).is_file() {
-        println!("readlist file already exists.");
-    } else {
-        println!("creating readlist path.");
-        fs::write(readlist_path, "{}")?;
-    }
+    config::setup()?;
+    readlist::setup()?;
     Ok(())
 }
 
 fn tracking() -> Result<(), Box<dyn Error>> {
-    let configs: Vec<config::Config> = config::get()?;
-    display::display_configs(configs)?;
-    Ok(())
+    display::display_configs(config::get()?)
 }
 
 fn remove_feed(args: &ArgMatches<'_>) -> Result<(), Box<dyn Error>> {
     let feed = args.value_of("feed").unwrap().to_string();
-    let configs: Vec<config::Config> = config::get()?
-        .into_iter()
-        .filter(|c| c.feed != feed)
-        .collect();
-    config::update(configs)?;
+    config::remove(feed)?;
     Ok(())
 }
 
 fn mark_read(args: &ArgMatches<'_>) -> Result<(), Box<dyn Error>> {
     let post = args.value_of("post").unwrap().to_string();
-    let mut unread_feeds: readlist::ReadList = readlist::update(readlist::ReadList::new())?
-        .into_iter()
-        .filter(|(_, read_list)| !read_list.is_empty())
-        .collect();
-    for (_, to_read) in unread_feeds.iter_mut() {
-        *to_read = to_read
-            .into_iter()
-            .filter(|p| **p != post)
-            .map(|p| p.to_owned())
-            .collect::<Vec<_>>();
-    }
-    let _ = readlist::replace(unread_feeds)?;
+    readlist::mark_read(post)?;
     Ok(())
 }
 
 async fn fetch_new_feeds() -> Result<(), Box<dyn Error>> {
-    let configs: Vec<config::Config> = config::get()?;
+    let configs = config::get()?;
     let conext = feeds::feeds_and_config(configs).await?;
-    let read_list = readlist::update(conext.feeds)?;
-    config::update(conext.configs)?;
-    display::display_feeds(read_list)?;
-    Ok(())
+    let readlist = readlist::update(conext.feeds)?;
+    config::replace(conext.configs)?;
+    display::display_feeds(readlist)
 }
 
 #[tokio::main]
@@ -175,6 +133,5 @@ async fn main() -> Result<(), Box<dyn Error>> {
         (REMOVE, Some(s_args)) => remove_feed(s_args),
         (READ, Some(s_args)) => mark_read(s_args),
         _ => fetch_new_feeds().await,
-    }?;
-    Ok(())
+    }
 }

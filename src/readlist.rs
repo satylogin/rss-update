@@ -3,17 +3,64 @@ use std::error::Error;
 use std::fs;
 use std::path::Path;
 
-pub(crate) fn readlist_path() -> String {
+pub(crate) type ReadList = HashMap<String, Vec<String>>;
+type Result<T> = std::result::Result<T, Box<dyn Error>>;
+
+fn readlist_path() -> String {
     let readlist_path = Path::new(&crate::base_dir()).join("read_list.json");
     String::from(readlist_path.to_str().unwrap())
 }
 
-pub(crate) type ReadList = HashMap<String, Vec<String>>;
-type Result<T> = std::result::Result<T, Box<dyn Error>>;
+pub(crate) fn setup() -> Result<()> {
+    let readlist_path = readlist_path();
+    if Path::new(&readlist_path).is_file() {
+        println!("readlist file already exists.");
+    } else {
+        println!("creating readlist path.");
+        fs::write(readlist_path, "{}")?;
+    }
+    Ok(())
+}
 
 fn get() -> Result<ReadList> {
     let read_list = fs::read_to_string(readlist_path())?;
     Ok(serde_json::from_str(read_list.as_str())?)
+}
+
+pub(crate) fn unread() -> Result<ReadList> {
+    _unread(get()?)
+}
+
+fn _unread(readlist: ReadList) -> Result<ReadList> {
+    let unread = readlist
+        .into_iter()
+        .filter(|(_, readlist)| !readlist.is_empty())
+        .collect();
+    Ok(unread)
+}
+
+fn _mark_read(mut readlist: ReadList, post: String) -> Result<ReadList> {
+    for (_, to_read) in readlist.iter_mut() {
+        *to_read = to_read
+            .into_iter()
+            .filter(|p| **p != post)
+            .map(|p| p.to_owned())
+            .collect::<Vec<_>>();
+    }
+    Ok(readlist)
+}
+
+pub(crate) fn mark_read(post: String) -> Result<ReadList> {
+    let readlist = _mark_read(get()?, post)?;
+    replace(readlist)
+}
+
+pub(crate) fn update(feeds: ReadList) -> Result<ReadList> {
+    let read_list = get()?;
+    let read_list = _update(feeds, read_list)?;
+    let data = serde_json::to_string_pretty(&read_list)?;
+    fs::write(readlist_path(), data)?;
+    Ok(read_list)
 }
 
 fn _update(feeds: ReadList, mut readlist: ReadList) -> Result<ReadList> {
@@ -25,26 +72,6 @@ fn _update(feeds: ReadList, mut readlist: ReadList) -> Result<ReadList> {
         to_read.dedup();
     });
     Ok(readlist)
-}
-
-fn _unread(readlist: ReadList) -> Result<ReadList> {
-    let unread = readlist
-        .into_iter()
-        .filter(|(_, readlist)| !readlist.is_empty())
-        .collect();
-    Ok(unread)
-}
-
-pub(crate) fn unread() -> Result<ReadList> {
-    _unread(get()?)
-}
-
-pub(crate) fn update(feeds: ReadList) -> Result<ReadList> {
-    let read_list = get()?;
-    let read_list = _update(feeds, read_list)?;
-    let data = serde_json::to_string_pretty(&read_list)?;
-    fs::write(readlist_path(), data)?;
-    Ok(read_list)
 }
 
 pub(crate) fn replace(readlist: ReadList) -> Result<ReadList> {
@@ -111,6 +138,37 @@ mod tests {
         assert!(unread.contains_key("feed1"));
         assert!(!unread.contains_key("feed2"));
         assert!(unread.contains_key("feed3"));
+        Ok(())
+    }
+
+    #[test]
+    fn test_mark_read_existing_post() -> Result<()> {
+        let readlist = readlist_from(vec![
+            ("feed1", vec!["post1", "post2"]),
+            ("feed2", vec!["post3", "post4", "post5"]),
+        ]);
+        let post = "post4".to_string();
+
+        let expected = readlist_from(vec![
+            ("feed1", vec!["post1", "post2"]),
+            ("feed2", vec!["post3", "post5"]),
+        ]);
+
+        let output = _mark_read(readlist, post)?;
+        assert_eq!(expected, output);
+        Ok(())
+    }
+
+    #[test]
+    fn test_mark_read_non_existing_post() -> Result<()> {
+        let readlist = readlist_from(vec![
+            ("feed1", vec!["post1", "post2"]),
+            ("feed2", vec!["post3", "post5"]),
+        ]);
+        let post = "post4".to_string();
+
+        let output = _mark_read(readlist.clone(), post)?;
+        assert_eq!(readlist, output);
         Ok(())
     }
 }

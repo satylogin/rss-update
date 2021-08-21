@@ -1,13 +1,16 @@
-use crate::config::Config;
+use crate::config::{Config, ConfigList};
 use crate::readlist::ReadList;
 use chrono::{DateTime, Utc};
 use futures::future;
 use std::error::Error;
 
+pub(crate) type Result<T> = std::result::Result<T, Box<dyn Error>>;
+pub(crate) type Posts = Vec<String>;
+
 async fn new_posts_from_feed(
     feed: atom_syndication::Feed,
     updated: Option<DateTime<Utc>>,
-) -> Result<Vec<String>, Box<dyn Error>> {
+) -> Result<Posts> {
     let updated = updated.unwrap_or(Utc::now());
     let links = feed
         .entries()
@@ -24,7 +27,7 @@ async fn new_posts_from_feed(
 async fn new_posts_from_channel(
     channel: rss::Channel,
     updated: Option<DateTime<Utc>>,
-) -> Result<Vec<String>, Box<dyn Error>> {
+) -> Result<Posts> {
     let updated = updated.unwrap_or(Utc::now());
     let links = channel
         .items()
@@ -40,10 +43,7 @@ async fn new_posts_from_channel(
     Ok(links)
 }
 
-async fn new_posts(
-    url: String,
-    updated: Option<DateTime<Utc>>,
-) -> Result<Vec<String>, Box<dyn Error>> {
+async fn new_posts(url: String, updated: Option<DateTime<Utc>>) -> Result<Posts> {
     let data = reqwest::get(url.as_str()).await?.text().await?;
     let new_posts: Vec<String> = match data.parse::<syndication::Feed>()? {
         syndication::Feed::Atom(feed) => new_posts_from_feed(feed, updated).await?,
@@ -55,10 +55,10 @@ async fn new_posts(
 #[derive(Debug)]
 pub(crate) struct Context {
     pub(crate) feeds: ReadList,
-    pub(crate) configs: Vec<Config>,
+    pub(crate) configs: ConfigList,
 }
 
-pub(crate) async fn feeds_and_config(configs: Vec<Config>) -> Result<Context, Box<dyn Error>> {
+pub(crate) async fn feeds_and_config(configs: ConfigList) -> Result<Context> {
     let mut feeds_futures = vec![];
     for config in configs.iter() {
         feeds_futures.push(new_posts(config.feed.clone(), config.updated.clone()));
