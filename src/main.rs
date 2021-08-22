@@ -77,13 +77,10 @@ fn unread() -> Result<(), Box<dyn Error>> {
 }
 
 fn add_feed(args: &ArgMatches<'_>) -> Result<(), Box<dyn Error>> {
-    let tracking_date = args
-        .value_of("from")
-        .map(|d| {
-            let d = NaiveDate::parse_from_str(d, USER_DATE_FORMAT).ok().unwrap();
-            DateTime::from_utc(d.and_hms(0, 0, 0), Utc)
-        })
-        .unwrap_or(Utc::now());
+    let tracking_date = args.value_of("from").map_or(Utc::now(), |d| {
+        let d = NaiveDate::parse_from_str(d, USER_DATE_FORMAT).ok().unwrap();
+        DateTime::from_utc(d.and_hms(0, 0, 0), Utc)
+    });
     config::update(config::Config {
         feed: args.value_of("feed").unwrap().to_string(),
         updated: Some(tracking_date),
@@ -104,13 +101,13 @@ fn tracking() -> Result<(), Box<dyn Error>> {
 
 fn remove_feed(args: &ArgMatches<'_>) -> Result<(), Box<dyn Error>> {
     let feed = args.value_of("feed").unwrap().to_string();
-    config::remove(feed)?;
+    config::remove(&feed)?;
     Ok(())
 }
 
 fn mark_read(args: &ArgMatches<'_>) -> Result<(), Box<dyn Error>> {
     let post = args.value_of("post").unwrap().to_string();
-    readlist::mark_read(post)?;
+    readlist::mark_read(&post)?;
     Ok(())
 }
 

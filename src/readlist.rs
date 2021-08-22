@@ -28,50 +28,52 @@ fn get() -> Result<ReadList> {
 }
 
 pub(crate) fn unread() -> Result<ReadList> {
-    _unread(get()?)
+    Ok(_unread(get()?))
 }
 
-fn _unread(readlist: ReadList) -> Result<ReadList> {
-    let unread = readlist
+fn _unread(readlist: ReadList) -> ReadList {
+    readlist
         .into_iter()
         .filter(|(_, readlist)| !readlist.is_empty())
-        .collect();
-    Ok(unread)
+        .collect()
 }
 
-fn _mark_read(mut readlist: ReadList, post: String) -> Result<ReadList> {
-    for (_, to_read) in readlist.iter_mut() {
+fn _mark_read(mut readlist: ReadList, post: &str) -> ReadList {
+    for to_read in readlist.values_mut() {
         *to_read = to_read
-            .into_iter()
+            .iter()
             .filter(|p| **p != post)
-            .map(|p| p.to_owned())
+            .map(std::clone::Clone::clone)
             .collect::<Vec<_>>();
     }
-    Ok(readlist)
+    readlist
 }
 
-pub(crate) fn mark_read(post: String) -> Result<ReadList> {
-    let readlist = _mark_read(get()?, post)?;
+pub(crate) fn mark_read(post: &str) -> Result<ReadList> {
+    let readlist = _mark_read(get()?, post);
     replace(readlist)
 }
 
 pub(crate) fn update(feeds: ReadList) -> Result<ReadList> {
     let read_list = get()?;
-    let read_list = _update(feeds, read_list)?;
+    let read_list = _update(feeds, read_list);
     let data = serde_json::to_string_pretty(&read_list)?;
     fs::write(readlist_path(), data)?;
     Ok(read_list)
 }
 
-fn _update(feeds: ReadList, mut readlist: ReadList) -> Result<ReadList> {
-    for (feed, mut to_read) in feeds.into_iter() {
-        readlist.entry(feed).or_insert(vec![]).append(&mut to_read);
+fn _update(feeds: ReadList, mut readlist: ReadList) -> ReadList {
+    for (feed, mut to_read) in feeds {
+        readlist
+            .entry(feed)
+            .or_insert_with(Vec::new)
+            .append(&mut to_read);
     }
-    readlist.iter_mut().for_each(|(_, to_read)| {
+    for to_read in readlist.values_mut() {
         to_read.sort();
         to_read.dedup();
-    });
-    Ok(readlist)
+    }
+    readlist
 }
 
 pub(crate) fn replace(readlist: ReadList) -> Result<ReadList> {
@@ -90,7 +92,9 @@ mod tests {
             .map(|(k, v)| {
                 (
                     k.to_string(),
-                    v.into_iter().map(|f| f.to_string()).collect(),
+                    v.into_iter()
+                        .map(std::string::ToString::to_string)
+                        .collect(),
                 )
             })
             .collect()
@@ -98,11 +102,11 @@ mod tests {
 
     #[test]
     fn test_readlist_path() {
-        assert!(super::readlist_path().starts_with("/"))
+        assert!(super::readlist_path().starts_with('/'));
     }
 
     #[test]
-    fn test_update() -> Result<()> {
+    fn test_update() {
         let readlist = readlist_from(vec![
             ("feed1", vec!["post1", "post2"]),
             ("feed2", vec!["post3", "post4"]),
@@ -112,7 +116,7 @@ mod tests {
             ("feed3", vec!["post5", "post6"]),
         ]);
 
-        let output = _update(feeds.clone(), readlist.clone())?;
+        let output = _update(feeds.clone(), readlist.clone());
         assert_eq!(3, output.len());
         assert_eq!(
             vec![
@@ -124,51 +128,45 @@ mod tests {
         );
         assert_eq!(readlist["feed2"], output["feed2"]);
         assert_eq!(feeds["feed3"], output["feed3"]);
-        Ok(())
     }
 
     #[test]
-    fn test_unread() -> Result<()> {
+    fn test_unread() {
         let readlist = readlist_from(vec![
             ("feed1", vec!["post1", "post2"]),
             ("feed2", vec![]),
             ("feed3", vec!["post5", "post6"]),
         ]);
-        let unread = _unread(readlist)?;
+        let unread = _unread(readlist);
         assert!(unread.contains_key("feed1"));
         assert!(!unread.contains_key("feed2"));
         assert!(unread.contains_key("feed3"));
-        Ok(())
     }
 
     #[test]
-    fn test_mark_read_existing_post() -> Result<()> {
+    fn test_mark_read_existing_post() {
         let readlist = readlist_from(vec![
             ("feed1", vec!["post1", "post2"]),
             ("feed2", vec!["post3", "post4", "post5"]),
         ]);
-        let post = "post4".to_string();
+
+        let output = _mark_read(readlist, "post4");
 
         let expected = readlist_from(vec![
             ("feed1", vec!["post1", "post2"]),
             ("feed2", vec!["post3", "post5"]),
         ]);
 
-        let output = _mark_read(readlist, post)?;
         assert_eq!(expected, output);
-        Ok(())
     }
 
     #[test]
-    fn test_mark_read_non_existing_post() -> Result<()> {
+    fn test_mark_read_non_existing_post() {
         let readlist = readlist_from(vec![
             ("feed1", vec!["post1", "post2"]),
             ("feed2", vec!["post3", "post5"]),
         ]);
-        let post = "post4".to_string();
-
-        let output = _mark_read(readlist.clone(), post)?;
+        let output = _mark_read(readlist.clone(), "post4");
         assert_eq!(readlist, output);
-        Ok(())
     }
 }
