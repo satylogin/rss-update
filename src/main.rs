@@ -116,7 +116,7 @@ fn mark_read(args: &ArgMatches<'_>) -> Result<(), Box<dyn Error>> {
 
 async fn fetch_new_feeds() -> Result<(), Box<dyn Error>> {
     let configs = config::get()?;
-    let conext = feeds::feeds_and_config(configs).await?;
+    let conext = feeds::feeds_and_config(configs, Utc::now()).await?;
     let readlist = readlist::update(conext.feeds)?;
     config::replace(conext.configs)?;
     display::display_feeds(readlist)

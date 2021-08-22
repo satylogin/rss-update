@@ -47,9 +47,14 @@ pub(crate) fn update(config: Config) -> Result<ConfigList> {
 fn _update(mut configs: ConfigList, config: Config) -> Result<ConfigList> {
     for c in configs.iter() {
         if c.feed == config.feed {
+            println!(
+                "feed: {} is already being tracked. skipping re-adding",
+                &config.feed
+            );
             return Ok(configs);
         }
     }
+    println!("adding feed: {} for tracking", &config.feed);
     configs.push(config);
     Ok(configs)
 }
