@@ -7,33 +7,33 @@ use std::error::Error;
 pub(crate) type Result<T> = std::result::Result<T, Box<dyn Error>>;
 pub(crate) type Posts = Vec<String>;
 
-async fn new_posts_from_feed(
-    feed: atom_syndication::Feed,
+fn new_posts_from_feed(
+    feed: &atom_syndication::Feed,
     updated: Option<DateTime<Utc>>,
     peek_time: DateTime<Utc>,
-) -> Result<Posts> {
-    let updated = updated.unwrap_or(Utc::now());
+) -> Posts {
+    let updated = updated.unwrap_or_else(Utc::now);
     let links = feed
         .entries()
-        .into_iter()
+        .iter()
         .filter(|entry| {
             let date_time = DateTime::parse_from_rfc3339(entry.updated()).ok().unwrap();
             date_time > updated && date_time <= peek_time
         })
         .map(|entry| String::from(entry.links()[0].href()))
         .collect::<Vec<_>>();
-    Ok(links)
+    links
 }
 
-async fn new_posts_from_channel(
-    channel: rss::Channel,
+fn new_posts_from_channel(
+    channel: &rss::Channel,
     updated: Option<DateTime<Utc>>,
     peek_time: DateTime<Utc>,
-) -> Result<Posts> {
-    let updated = updated.unwrap_or(Utc::now());
+) -> Posts {
+    let updated = updated.unwrap_or_else(Utc::now);
     let links = channel
         .items()
-        .into_iter()
+        .iter()
         .filter(|item| {
             let parsed_date = DateTime::parse_from_rfc2822(item.pub_date().unwrap())
                 .ok()
@@ -42,7 +42,7 @@ async fn new_posts_from_channel(
         })
         .map(|item| String::from(item.link().unwrap()))
         .collect::<Vec<_>>();
-    Ok(links)
+    links
 }
 
 async fn new_posts(
@@ -52,10 +52,8 @@ async fn new_posts(
 ) -> Result<Posts> {
     let data = reqwest::get(url.as_str()).await?.text().await?;
     let new_posts: Vec<String> = match data.parse::<syndication::Feed>()? {
-        syndication::Feed::Atom(feed) => new_posts_from_feed(feed, updated, peek_time).await?,
-        syndication::Feed::RSS(channel) => {
-            new_posts_from_channel(channel, updated, peek_time).await?
-        }
+        syndication::Feed::Atom(feed) => new_posts_from_feed(&feed, updated, peek_time),
+        syndication::Feed::RSS(channel) => new_posts_from_channel(&channel, updated, peek_time),
     };
     Ok(new_posts)
 }
@@ -72,7 +70,7 @@ pub(crate) async fn feeds_and_config(
 ) -> Result<Context> {
     let feeds_futures = configs
         .iter()
-        .map(|c| new_posts(c.feed.clone(), c.updated.clone(), peek_time.clone()))
+        .map(|c| new_posts(c.feed.clone(), c.updated, peek_time))
         .collect::<Vec<_>>();
     let new_posts = future::try_join_all(feeds_futures).await?;
 

@@ -41,25 +41,25 @@ pub(crate) fn setup() -> Result<()> {
 }
 
 pub(crate) fn update(config: Config) -> Result<ConfigList> {
-    replace(_update(get()?, config)?)
+    replace(_update(get()?, config))
 }
 
-fn _update(mut configs: ConfigList, config: Config) -> Result<ConfigList> {
-    for c in configs.iter() {
+fn _update(mut configs: ConfigList, config: Config) -> ConfigList {
+    for c in &configs {
         if c.feed == config.feed {
             println!(
                 "feed: {} is already being tracked. skipping re-adding",
                 &config.feed
             );
-            return Ok(configs);
+            return configs;
         }
     }
     println!("adding feed: {} for tracking", &config.feed);
     configs.push(config);
-    Ok(configs)
+    configs
 }
 
-pub(crate) fn remove(feed: String) -> Result<ConfigList> {
+pub(crate) fn remove(feed: &str) -> Result<ConfigList> {
     let configs = get()?.into_iter().filter(|c| c.feed != feed).collect();
     replace(configs)
 }
@@ -70,11 +70,11 @@ mod tests {
 
     #[test]
     fn test_config_path() {
-        assert!(config_path().starts_with("/"));
+        assert!(config_path().starts_with('/'));
     }
 
     #[test]
-    fn test_update_new_config() -> Result<()> {
+    fn test_update_new_config() {
         let configs = vec![
             Config {
                 feed: "feed1".to_string(),
@@ -89,20 +89,19 @@ mod tests {
             feed: "feed2".to_string(),
             updated: None,
         };
-        let updated = _update(configs, config)?;
+        let updated = _update(configs, config);
         let feeds = updated
             .iter()
             .map(|c| c.feed.to_string())
             .collect::<Vec<_>>();
         assert_eq!(3, feeds.len());
-        for feed in vec!["feed1", "feed2", "feed3"] {
+        for feed in ["feed1", "feed2", "feed3"] {
             assert!(feeds.contains(&String::from(feed)));
         }
-        Ok(())
     }
 
     #[test]
-    fn test_update_existing_config() -> Result<()> {
+    fn test_update_existing_config() {
         let configs = vec![
             Config {
                 feed: "feed1".to_string(),
@@ -117,15 +116,14 @@ mod tests {
             feed: "feed3".to_string(),
             updated: None,
         };
-        let updated = _update(configs, config)?;
+        let updated = _update(configs, config);
         let feeds = updated
             .iter()
             .map(|c| c.feed.to_string())
             .collect::<Vec<_>>();
         assert_eq!(2, feeds.len());
-        for feed in vec!["feed1", "feed3"] {
+        for feed in ["feed1", "feed3"] {
             assert!(feeds.contains(&String::from(feed)));
         }
-        Ok(())
     }
 }
