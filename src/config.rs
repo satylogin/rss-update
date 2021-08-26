@@ -7,19 +7,26 @@ use std::path::Path;
 pub(crate) type ConfigList = Vec<Config>;
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
 
+/// Returns path where config should reside.
 fn config_path() -> String {
     let config_path = Path::new(&crate::base_dir()).join("config.json");
     String::from(config_path.to_str().unwrap())
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+/// Feed Configuration used to track feed status.
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub(crate) struct Config {
     pub(crate) feed: String,
     pub(crate) updated: Option<DateTime<Utc>>,
 }
 
+/// Reads configs from path and parse it as `ConfigList`.
 pub(crate) fn get() -> Result<ConfigList> {
-    let config = fs::read_to_string(config_path())?;
+    _get(&config_path())
+}
+
+fn _get(path: &str) -> Result<ConfigList> {
+    let config = fs::read_to_string(path)?;
     Ok(serde_json::from_str(config.as_str())?)
 }
 
@@ -67,10 +74,48 @@ pub(crate) fn remove(feed: &str) -> Result<ConfigList> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::io::Write;
+    use tempfile::NamedTempFile;
 
     #[test]
     fn test_config_path() {
         assert!(config_path().starts_with('/'));
+    }
+
+    #[test]
+    fn test_get() {
+        let mut file = NamedTempFile::new().unwrap();
+        let feed1 = "https://satylogin.medium.com/feed".to_string();
+        let feed2 = "https://motw.rs/rss.xml".to_string();
+        let now = chrono::Utc::now();
+        let content = format!(
+            r#"[
+            {{
+                "feed": "{feed1}",
+                "updated": "{now}"
+            }},
+            {{
+                "feed": "{feed2}"
+            }}
+        ]"#,
+            feed1 = feed1,
+            now = now,
+            feed2 = feed2
+        );
+        writeln!(file, "{}", content).unwrap();
+
+        let expected = vec![
+            Config {
+                feed: feed1,
+                updated: Some(now),
+            },
+            Config {
+                feed: feed2,
+                updated: None,
+            },
+        ];
+        let output = _get(file.path().to_str().unwrap()).unwrap();
+        assert_eq!(expected, output);
     }
 
     #[test]

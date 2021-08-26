@@ -66,3 +66,8 @@ OPTIONS:
 
 ### Output Format
 ![output.png](https://raw.githubusercontent.com/satylogin/rss-update/main/images/output.png)
+
+
+### PR Instruction
+* Make sure you run `execute.sh` after your changes to run test, format and clippy and fix anything
+  that is breaking.
