@@ -30,9 +30,14 @@ fn _get(path: &str) -> Result<ConfigList> {
     Ok(serde_json::from_str(config.as_str())?)
 }
 
+/// Replaces config with the provided `ConfigList`
 pub(crate) fn replace(configs: ConfigList) -> Result<ConfigList> {
+    _replace(&config_path(), configs)
+}
+
+fn _replace(path: &str, configs: ConfigList) -> Result<ConfigList> {
     let data = serde_json::to_string_pretty(&configs)?;
-    fs::write(config_path(), data)?;
+    fs::write(path, data)?;
     Ok(configs)
 }
 
@@ -74,8 +79,12 @@ pub(crate) fn remove(feed: &str) -> Result<ConfigList> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::io::Write;
+    use std::io::{Read, Write};
     use tempfile::NamedTempFile;
+
+    fn remove_whitespaces(s: &str) -> String {
+        s.chars().filter(|c| !c.is_whitespace()).collect()
+    }
 
     #[test]
     fn test_config_path() {
@@ -116,6 +125,78 @@ mod tests {
         ];
         let output = _get(file.path().to_str().unwrap()).unwrap();
         assert_eq!(expected, output);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_get_improper_config_format() {
+        let mut file = NamedTempFile::new().unwrap();
+        let feed1 = "https://satylogin.medium.com/feed".to_string();
+        let feed2 = "https://motw.rs/rss.xml".to_string();
+        let now = chrono::Utc::now();
+        let content = format!(
+            r#"[
+            {{
+                "feed": "{feed1}",
+                "updated": "{now}"
+            }},
+            {{
+                "feed": "{feed2}"
+            }},
+        ]"#,
+            feed1 = feed1,
+            now = now,
+            feed2 = feed2
+        );
+        writeln!(file, "{}", content).unwrap();
+        _get(file.path().to_str().unwrap()).unwrap();
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_get_file_does_not_exist() {
+        _get("some/really/fake/path").unwrap();
+    }
+
+    // We are not adding test for cases where dir does not exists since that is an
+    // impossible case. For anything to happen, config / readlist has to be read, and
+    // if dir doesn't exists that operation would fail even before reaching here.
+    #[test]
+    fn test_replace() {
+        let mut file = NamedTempFile::new().unwrap();
+        let feed1 = "https://satylogin.medium.com/feed";
+        let feed2 = "https://motw.rs/rss.xml";
+        let now = chrono::Utc::now();
+        let config_list = vec![
+            Config {
+                feed: feed1.to_string(),
+                updated: Some(now),
+            },
+            Config {
+                feed: feed2.to_string(),
+                updated: None,
+            },
+        ];
+        let expected = format!(
+            r#"[
+            {{
+                "feed": "{feed1}",
+                "updated": "{now}"
+            }},
+            {{
+                "feed": "{feed2}",
+                "updated": null
+            }}
+        ]"#,
+            feed1 = feed1,
+            now = now.to_rfc3339_opts(chrono::SecondsFormat::Nanos, true),
+            feed2 = feed2
+        );
+        let output = _replace(file.path().to_str().unwrap(), config_list.clone()).unwrap();
+        assert_eq!(config_list, output);
+        let mut buf = String::new();
+        file.read_to_string(&mut buf).unwrap();
+        assert_eq!(remove_whitespaces(&expected), remove_whitespaces(&buf));
     }
 
     #[test]
